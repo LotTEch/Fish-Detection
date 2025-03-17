@@ -1,0 +1,15 @@
+# Ignorer bildefiler
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+*.tif
+*.tiff
+
+# Ignorer alle filer i en bestemt mappe (f.eks. 'dataset')
+dataset/
+
+# Hvis du har undermapper under dataset, ignorerer du alt:
+dataset/**
+

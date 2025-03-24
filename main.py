@@ -1,8 +1,8 @@
 import sys
 import os
 import cv2
-from region_proposal import generate_region_proposals
-from yolo_model_handler import YOLOModelHandler
+from AnadromSmall.src.detection.region_proposal import generate_region_proposals
+from AnadromSmall.src.detection.yolo_model_handler import YOLOModelHandler
 
 try:
     print(" main.py startet!")

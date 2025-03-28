@@ -1,63 +1,41 @@
-import sys
+# main.py
 import os
-import cv2
-from AnadromSmall.src.detection.region_proposal import generate_region_proposals
-from AnadromSmall.src.detection.yolo_model_handler import YOLOModelHandler
+from utils.fileHandler import load_yaml
+from utils.annotate_img import annotate_images
 
-try:
-    print(" main.py startet!")
+def main():
+    # 1) Laste konfigurasjonen
+    config_path = "dataset_config.yaml"
+    if not os.path.isfile(config_path):
+        print(f"Fant ikke konfigurasjonsfilen {config_path}")
+        return
 
-    # Finn den absolutte stien til `src2`
-    src2_path = os.path.abspath(os.path.dirname(__file__))
+    config = load_yaml(config_path)
+    if not config:
+        print("Konfigurasjonsfilen er tom eller kunne ikke lastes.")
+        return
 
-    # Sett opp riktig sti for `dataset/test/`
-    dataset_test_path = os.path.join(os.path.dirname(src2_path), "dataset", "test")
+    # 2) Hent stier fra config
+    weights_path = config.get("weights_path", "best.pt")
+    image_dir = config.get("train", "dataset/train")
+    annotated_dir = config.get("annotated_train", "dataset/train/annotated_pictures/fish")
+    label_dir = config.get("labels_train", "dataset/train/labels/fish")
 
-    # Velg spesifikk kategori
-    category = "Fish"
-    category_path = os.path.join(dataset_test_path, category)
+    # 3) Sjekk at fil/mappene finnes
+    if not os.path.isfile(weights_path):
+        print(f"Vektsfil '{weights_path}' finnes ikke.")
+        return
+    if not os.path.isdir(image_dir):
+        print(f"Bildekatalog '{image_dir}' finnes ikke.")
+        return
 
-    # Sett spesifikt bilde
-    image_filename = "Fishdetection_frame_000255.PNG"
-    #image_filename = "20230716080335_20230716080344_3.mp4_frame_000028.PNG"
-    #image_filename = "Fishdetection_frame_000114.PNG"
-    #image_filename = "Fishdetection_frame_000037.PNG"
-    image_path = os.path.join(category_path, image_filename)
+    # 4) Kjør annotering
+    print("Starter annotering med stier fra dataset_config.yaml:")
+    print(f"  weights_path: {weights_path}")
+    print(f"  image_dir: {image_dir}")
+    print(f"  annotated_dir: {annotated_dir}")
+    print(f"  label_dir: {label_dir}")
+    annotate_images(weights_path, image_dir, annotated_dir, label_dir)
 
-    # Sjekk om bildet eksisterer
-    if not os.path.exists(image_path):
-        raise FileNotFoundError(f" Feil: Bildet ble ikke funnet på {image_path}!")
-
-    print(f" Valgt kategori: {category}")
-    print(f" Valgt bilde: {image_path}")
-
-    # Finn riktig YOLO-modellmappe
-    yolo_model_path = os.path.join(os.path.dirname(src2_path), "yolo_model")
-
-    # Oppdater YOLO filbaner
-   # config_path = os.path.join(yolo_model_path, "yolov4-tiny.cfg")
-   # weights_path = os.path.join(yolo_model_path, "yolov4-tiny_best.weights")
-    weights_path = os.path.join(yolo_model_path, "yolo-fish-2.weights")
-    config_path = os.path.join(yolo_model_path, "yolo-fish-2.cfg")
-    class_names_path = os.path.join(yolo_model_path, "classes.txt")
-
-    # Test om filene finnes før vi kjører YOLO
-    for path in [config_path, weights_path, class_names_path]:
-        if not os.path.exists(path):
-            raise FileNotFoundError(f" Feil: Finner ikke {path}")
-    print(" Alle YOLO-filer ble funnet!")
-
-    # Generer region proposals
-    print(" Genererer region proposals...")
-    proposals = generate_region_proposals(image_path)
-    print(f" Antall foreslåtte regioner: {len(proposals)}")
-
-    #  Kjør YOLO deteksjon
-    print(" Kjører YOLO-modellen...")
-    model_handler = YOLOModelHandler(config_path, weights_path, class_names_path)
-    model_handler.detect_objects(image_path)
-
-    print(" Prosessen er ferdig! Resultatene er lagret i detected_fish.jpg.")
-
-except Exception as e:
-    print(f" Feil oppstod: {e}")
+if __name__ == "__main__":
+    main()

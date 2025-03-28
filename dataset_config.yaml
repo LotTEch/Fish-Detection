@@ -1,0 +1,13 @@
+train: dataset/train/fish
+val: dataset/val
+test: dataset/test
+
+nc: 2
+names: ["fish", "noFish"]
+
+annotated_train: dataset/train/annotated_pictures/fish
+labels_train: dataset/train/labels/fish
+
+temp_train: dataset/training_fish/fish # annoterte bilder med fish, og noen få bilder uten fisk som ikke er annotert. 
+temp_annotation: dataset/training_fish/labels # annoterte bilder med fish, og noen få bilder uten fisk som ikke er annotert. 
+weights_path: best.pt  # Stien til vektsfilen

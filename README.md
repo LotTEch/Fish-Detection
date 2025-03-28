@@ -1,126 +1,113 @@
-# Fish-Detection
+# Fish Detection with YOLO
 
-## Prosjektoversikt
-Dette prosjektet er designet for å detektere fisk i bilder og videoer ved hjelp av region proposals og YOLO-modellen. Prosjektet inkluderer flere moduler som håndterer bildeprosessering, dataforberedelse, modellhåndtering og augmentering.
+## Oppgavebeskrivelse
+Dette prosjektet er en implementasjon av et fiske-deteksjonssystem basert på YOLOv8-modellen. Målet er å bruke en ferdigtrent YOLO-modell til å annotere bilder, trene modellen på nye data, evaluere ytelsen, og håndtere datasettene på en strukturert måte.
 
-#### Forutsetninger 
-- filstier 
-
+## Prosjektfunksjonalitet
+Prosjektet tilbyr følgende funksjoner:
+1. **Trening av YOLO-modellen**: Bruker en konfigurasjonsfil (`dataset_config.yaml`) for å spesifisere treningsdata og parametere.
+2. **Evaluering av modellen**: Evaluerer modellen ved hjelp av valideringsdata og genererer ytelsesmetrikker.
+3. **Annotering av bilder**: Bruker en ferdigtrent YOLO-modell til å annotere bilder, lagre annoterte bilder og generere YOLO-format `.txt`-filer.
+4. **Filhåndtering**: Sikrer at nødvendige mapper og filer eksisterer, og håndterer YAML-konfigurasjonsfiler.
 
 ## Filstruktur
-Her er en oversikt over prosjektets filer og mapper, samt deres funksjoner:
+Prosjektet er organisert som følger:
+
+```
+Fish-detection/
+│
+├── dataset/                     # Dataset-mapper
+│   ├── train/                   # Treningsdata
+│   │   ├── fish/                # Bilder av fisk
+│   │   ├── labels/fish/         # YOLO-format annoteringsfiler
+│   │   └── annotated_pictures/  # Annoterte bilder
+│   ├── val/                     # Valideringsdata
+│   └── test/                    # Testdata
+│
+├── runs/                        # YOLO-resultater (trening, evaluering, annotering)
+│   └── detect/                  # Resultater fra annotering
+│
+├── utils/                       # Hjelpefunksjoner
+│   ├── fileHandler.py           # Laster YAML-konfigurasjonsfiler
+│   ├── image_loader.py          # Leser bilder fra mapper
+│   └── annotate_img.py          # Annoterer bilder med YOLO
+│
+├── Yolo_model/                  # YOLO-relaterte funksjoner
+│   ├── yolo_utils.py            # Trening og evaluering av modellen
+│   └── yolo_annotate.py         # Annotering av bilder
+│
+├── main.py                      # Hovedprogram for å kjøre funksjonalitet
+├── dataset_config.yaml          # Konfigurasjonsfil for dataset og vekter
+├── requirements.txt             # Python-avhengigheter
+└── README.md                    # Dokumentasjon
+```
+
+## Hvordan bruke prosjektet
+### 1. Installere avhengigheter
+Installer nødvendige Python-pakker ved å kjøre:
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Konfigurasjonsfil
+Rediger `dataset_config.yaml` for å spesifisere dataset-stier, vektsfil, og andre parametere. Eksempel:
+```yaml
+train: dataset/train/fish
+val: dataset/val
+test: dataset/test
+
+nc: 2
+names: ["fish", "noFish"]
+
+annotated_train: dataset/train/annotated_pictures/fish
+labels_train: dataset/train/labels/fish
+
+weights_path: best.pt
+```
+
+### 3. Kjøre hovedprogrammet
+Kjør `main.py` for å starte annotering:
+```bash
+python main.py
+```
+
+### 4. Annotering av bilder
+Annoteringsfunksjonen bruker YOLO til å detektere objekter i bilder og lagrer:
+- Annoterte bilder i `annotated_train`.
+- YOLO-format `.txt`-filer i `labels_train`.
+
+### 5. Trening av modellen
+For å trene modellen, bruk `train_model`-funksjonen i `Yolo_model/yolo_utils.py`:
+```python
+from Yolo_model.yolo_utils import train_model
+train_model("dataset_config.yaml")
+```
+
+### 6. Evaluering av modellen
+For å evaluere modellen, bruk `evaluate_model`-funksjonen:
+```python
+from Yolo_model.yolo_utils import evaluate_model
+evaluate_model("dataset_config.yaml", "best.pt")
+```
+
+## Viktige filer og mapper
+- **`main.py`**: Hovedprogrammet som håndterer annotering.
+- **`utils/annotate_img.py`**: Annoterer bilder med YOLO og lagrer resultater.
+- **`Yolo_model/yolo_utils.py`**: Inneholder funksjoner for trening og evaluering.
+- **`dataset_config.yaml`**: Konfigurasjonsfil for dataset og vekter.
+- **`requirements.txt`**: Liste over nødvendige Python-pakker.
+
+## Eksempel på annotering
+Når du kjører annoteringsfunksjonen, vil den:
+1. Velge inntil 10 tilfeldige bilder fra `dataset/train/fish`.
+2. Annotere bildene med YOLO.
+3. Lagre annoterte bilder i `dataset/train/annotated_pictures/fish`.
+4. Generere YOLO-format `.txt`-filer i `dataset/train/labels/fish`.
+
+## Videre arbeid
+- **Utvidelse av dataset**: Legg til flere bilder for bedre modelltrening.
+- **Hyperparameter-tuning**: Juster parametere som `epochs` og `imgsz` for bedre ytelse.
+- **Distribusjon**: Lag en Docker-container for enklere distribusjon.
 
 
 
-## Forklaring av Mappene
-
-- **`/dataset/`**  
-  Inneholder rådata (bilder) som brukes i trenings- og evalueringsfasen. Mappen er videre delt inn i `train/`, `val/` og `test/` for å skille dataene til de ulike fasene av utviklingen.
-
-- **`/src/augmentation/`**  
-  Her ligger skript for å utføre data augmentation på bildene (f.eks. justering av lys, kontrast og gamma) for å gjøre modellen mer robust.
-
-- **`/src/preprocessing/`**  
-  Her ligger skript for forbehandling av bilder (f.eks. resizing, normalisering, histogramutjevning) før de brukes i trenings- eller deteksjonsfasen.
-
-- **`/src/split/`**  
-  Inneholder skript for å splitte rådatamappen i trenings-, validerings- og testsett.
-
-- **`/src/detection/`**  
-  Inneholder kjernefunksjonalitet for objektdeteksjon, slik som YOLO-basert modellhåndtering og eventuelle metoder for region proposals.
-
-- **`/src/main.py`**  
-  Hovedskriptet som binder sammen alle de andre modulene. Her kan du kjøre hele pipelinen fra datasplitting og augmentering til modelltrening og inferens.
-
-- **`/models/`**  
-  Her kan du lagre dine trente modeller, samt konverterte versjoner (f.eks. TensorFlow Lite) for bruk på edge-enheter som Raspberry Pi.
-
-- **`/docs/`**  
-  Samler dokumentasjon, rapporter, prosjektlogg og e-portefølje-innhold.
-
-- **`requirements.txt`**  
-  Fil med liste over Python-pakkene prosjektet er avhengig av (OpenCV, albumentations, ultralytics, osv.).
-
-- **`README.md`**  
-  Prosjektbeskrivelse som forklarer hvordan man installerer og kjører prosjektet. Her bør du inkludere en oversikt over mappestrukturen, samt instruksjoner for kjøring av skriptene.
-
-
-### Fil forklaringer
-- **`main.py`**  
-  Hovedfilen som kjører hele prosessen. Den genererer region proposals, laster inn YOLO-modellen, og detekterer objekter i et valgt bilde.
-
-- **`region_proposal.py`**  
-  Inneholder funksjonalitet for å generere region proposals fra bilder ved hjelp av binær segmentering og konturdeteksjon.
-
-- **`yolo_model_handler.py`**  
-  Håndterer YOLO-modellen, inkludert lasting av konfigurasjonsfiler, vekter og klasselister. Utfører objektgjenkjenning på bilder.
-
-- **`image_processor.py`**  
-  En klasse for å prosessere bilder ved hjelp av YOLO-modellen. Brukes til å detektere objekter i bilder.
-
-- **`Fish_Augmentation_Alg.py`**  
-  Utfører bildeaugmentering for å forbedre datasettet. Endrer lysstyrke, kontrast og gamma for å simulere ulike forhold.
-
-- **`mova_split.py`**  
-  Skript for å splitte og flytte bilder fra kildemapper til trenings-, validerings- og testmapper i forholdet 70/15/15.
-
-- **`__init__.py`**  
-  Tom fil som markerer mappen som en Python-pakke.
-
-- **`.gitignore`**  
-  Ignorerer bildefiler og dataset-mappen for å unngå at store filer lastes opp til Git.
-
-- **`README.md`**  
-  Denne filen, som gir en oversikt over prosjektet.
-
-
-
-:
-
-# Midlertidig prosjektveiledning for Teamet. 
-
-
-### README – Prosjektets Fremgangsmåte
-
-Nedenfor finner du en trinnvis veiledning for hvordan vi skal fullføre prosjektet vårt. Hensikten er å tydeliggjøre rekkefølgen av oppgaver – fra datasplitting og preprocessing til ferdig trent YOLOv8-modell og inferens. 
-
----
-
-## 1. **Datasplitting**
-1. **Hensikt**: Dele rådata i `train/`, `val/` og `test/` for å sikre en ryddig trenings- og evalueringsprosess.  
-2. **Verktøy**: `mova_split.py` (eller lignende script) som flytter bildene i riktig forhold (f.eks. 70/15/15).  
-3. **Hva nå?**: Etter at data er splittet, har du egne mapper for trening, validering og testing. 
-
-> **Neste steg**: Kjør *preprocessing* på de splittede bildene om du ønsker å fjerne støy, forbedre kontrast osv.
-
----
-
-## 2. **Preprocessing (valgfritt, men anbefalt)**
-1. **Hensikt**: Forbedre bildekvaliteten ved å fjerne støy, justere kontrast og eventuelt kjøre morfologiske operasjoner.  
-2. **Eksempler**:
-   - `remove_noise(image)`: Fjerner støy (f.eks. ved bruk av median filter, Gaussian blur).
-   - `enhance_contrast(image)`: Øker kontrast (f.eks. histogramutjevning).
-   - `morphological_ops(image)`: Erosjon/dilasjon for å rydde opp i små forstyrrelser.  
-3. **Hvor?**: I `/src/preprocessing/`.  
-4. **Hva nå?**: Når preprocessing er kjørt på trenings- og valideringsbildene, er de klare for augmentering.
-
-> **Neste steg**: Kjør *augmentation* for å utvide datasettet med flere varianter av bildene.
-
----
-
-## 3. **Augmentation**
-1. **Hensikt**: Kunstig øke variasjonen i datasettet for å unngå overfitting og gjøre modellen mer robust.  
-2. **Eksempler**:
-   - Rotasjon, flipping, skalering
-   - Endring av lysstyrke og kontrast
-   - Tilfeldig støy eller blur (for å simulere varierende forhold)  
-3. **Hvor?**: I `/src/augmentation/`, f.eks. `Fish_Augmentation_Alg.py`.  
-4. **Hva nå?**: Når du har generert de augmented bildene, sørg for at eventuelle bounding box-annoteringer fortsatt er riktige (rotasjon/cropping krever ofte oppdatert annotering).
-
-> **Neste steg**: Sjekk at dataene er i YOLO-format og lag en `.yaml`-fil for YOLOv8.
-
----
-
-## 4. **Forbered YOLO-format og .yaml-fil**
-1. **Hensikt**: YOLOv8 trenger en bestemt mappestruktur og en `.yaml`-fil.  
-2. **Mappestruktur**:

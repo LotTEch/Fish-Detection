@@ -13,3 +13,5 @@ dataset/
 # Hvis du har undermapper under dataset, ignorerer du alt:
 dataset/**
 
+# andre filer 
+.env

@@ -1,4 +1,115 @@
+
 # Fish Detection with YOLO
+
+## Project Description
+This project is an implementation of a fish detection system based on the YOLOv8 model. The goal is to use a pre-trained YOLO model to annotate images, train the model on new data, evaluate its performance, and manage datasets in a structured manner.
+
+## Project Functionality
+The project offers the following features:
+1. **Training the YOLO model**: Uses a configuration file (`dataset_config.yaml`) to specify training data and parameters.
+2. **Model evaluation**: Evaluates the model using validation data and generates performance metrics.
+3. **Image annotation**: Uses a pre-trained YOLO model to annotate images, save annotated images, and generate YOLO-format `.txt` files.
+4. **File management**: Ensures necessary folders and files exist and handles YAML configuration files.
+
+## File Structure
+The project is organized as follows:
+
+```
+Fish-detection/
+│
+├── dataset/                     # Dataset folders
+│   ├── train/                   # Training data
+│   │   ├── fish/                # Images of fish
+│   │   ├── labels/fish/         # YOLO-format annotation files
+│   │   └── annotated_pictures/  # Annotated images
+│   ├── val/                     # Validation data
+│   └── test/                    # Test data
+│
+├── runs/                        # YOLO results (training, evaluation, annotation)
+│   └── detect/                  # Annotation results
+│
+├── utils/                       # Utility functions
+│   ├── fileHandler.py           # Loads YAML configuration files
+│   ├── image_loader.py          # Reads images from folders
+│   └── annotate_img.py          # Annotates images with YOLO
+│
+├── Yolo_model/                  # YOLO-related functions
+│   ├── yolo_utils.py            # Training and evaluation of the model
+│   └── yolo_annotate.py         # Image annotation
+│
+├── main.py                      # Main program to run functionality
+├── dataset_config.yaml          # Configuration file for dataset and weights
+├── requirements.txt             # Python dependencies
+└── README.md                    # Documentation
+```
+
+## How to Use the Project
+### 1. Install Dependencies
+Install the required Python packages by running:
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Configuration File
+Edit `dataset_config.yaml` to specify dataset paths, weights file, and other parameters. Example:
+```yaml
+train: dataset/train/fish
+val: dataset/val
+test: dataset/test
+
+nc: 2
+names: ["fish", "noFish"]
+
+annotated_train: dataset/train/annotated_pictures/fish
+labels_train: dataset/train/labels/fish
+
+weights_path: best.pt
+```
+
+### 3. Run the Main Program
+Run `main.py` to start annotation:
+```bash
+python main.py
+```
+
+### 4. Image Annotation
+The annotation function uses YOLO to detect objects in images and saves:
+- Annotated images in `annotated_train`.
+- YOLO-format `.txt` files in `labels_train`.
+
+### 5. Train the Model
+To train the model, use the `train_model` function in `Yolo_model/yolo_utils.py`:
+```python
+from Yolo_model.yolo_utils import train_model
+train_model("dataset_config.yaml")
+```
+
+### 6. Evaluate the Model
+To evaluate the model, use the `evaluate_model` function:
+```python
+from Yolo_model.yolo_utils import evaluate_model
+evaluate_model("dataset_config.yaml", "best.pt")
+```
+
+## Key Files and Folders
+- **`main.py`**: The main program that handles annotation.
+- **`utils/annotate_img.py`**: Annotates images with YOLO and saves results.
+- **`Yolo_model/yolo_utils.py`**: Contains functions for training and evaluation.
+- **`dataset_config.yaml`**: Configuration file for dataset and weights.
+- **`requirements.txt`**: List of required Python packages.
+
+## Annotation Example
+When running the annotation function, it will:
+1. Select up to 10 random images from `dataset/train/fish`.
+2. Annotate the images with YOLO.
+3. Save annotated images in `dataset/train/annotated_pictures/fish`.
+4. Generate YOLO-format `.txt` files in `dataset/train/labels/fish`.
+
+## Future Work
+- **Dataset Expansion**: Add more images for better model training.
+- **Hyperparameter Tuning**: Adjust parameters like `epochs` and `imgsz` for better performance.
+- **Distribution**: Create a Docker container for easier distribution.
+
 
 ## Oppgavebeskrivelse
 Dette prosjektet er en implementasjon av et fiske-deteksjonssystem basert på YOLOv8-modellen. Målet er å bruke en ferdigtrent YOLO-modell til å annotere bilder, trene modellen på nye data, evaluere ytelsen, og håndtere datasettene på en strukturert måte.
